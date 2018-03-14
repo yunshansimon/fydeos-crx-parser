@@ -24,6 +24,33 @@ app's name, app's id and icon.
 }
 ```
 
+  * **callback** `<function>` function (err, crxInfo){} if there is no error, `err` will be null. crxInfo is a object:
+
+```javascript
+{
+  version: Number , // 2 or 3 .
+  header:{
+    id: String //app id
+    crx_id: String //crx id for version:3
+    PublicKey: Buffer // public key for version:2
+    signature: Buffer // signature for version:2
+    sha256_with_rsa: [{
+      PublicKey: Buffer,
+      signature: Buffer
+    }] // asymmetric keys for version:3
+    sha256_with_ecdsa: [] // same as above
+  },
+  manifest: { //App's manifest object.
+    name: String // or locale object : App/extension name
+  },
+  icons: { //the icons have been extracted.
+    ["128"]: String // the full path of the saved icon.
+    ...
+  }
+}
+
+```
+
 #### Exemple
 
 ```javascript
