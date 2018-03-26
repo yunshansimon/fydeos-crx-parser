@@ -1,5 +1,5 @@
 {
-  "name": "fydeos-crx-paser",
+  "name": "fydeos-crx-parser",
   "version": "1.0.0",
   "description": "chrome/chromium extension/web_app package(.crx) parser",
   "main": "index.js",
