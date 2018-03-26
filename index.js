@@ -5,6 +5,7 @@ const env = require('./lib/env'),
   unzip = require('unzip'),
   debug = require('debug')('crx-parser'),
   concat = require('concat-stream'),
+  shell = require('shelljs'),
   combine = require('combine-streams');
 
 const APPID="$APPID",
@@ -77,7 +78,7 @@ module.exports = function(path, opt,callback){
     if(iconDir){
       if (crx.header.id) iconDir = iconDir.replace(APPID, crx.header.id);
       try{
-        fs.mkdirSync(iconDir, 0o755);
+        shell.mkdir('-p', iconDir)
       }catch(e){}
     }
   }

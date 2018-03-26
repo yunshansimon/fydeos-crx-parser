@@ -16,6 +16,7 @@
     "combine-streams": "^1.0.0",
     "concat-stream": "^1.6.1",
     "debug": "^3.1.0",
+    "shelljs": "^0.8.1",
     "unzip": "^0.1.11"
   },
   "devDependencies": {
