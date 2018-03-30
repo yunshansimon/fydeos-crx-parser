@@ -1,7 +1,7 @@
 const env = require('./lib/env'),
   fs = require('fs'),
   BufferReader = require('./lib/buffer-reader'),
-  {calculateId} = require('./lib/util'),
+  {calculateId, getFileName} = require('./lib/util'),
   unzip = require('unzip'),
   debug = require('debug')('crx-parser'),
   concat = require('concat-stream'),
@@ -183,6 +183,8 @@ module.exports = function(path, opt,callback){
     }
   }
 
+
+
   function magicAndVersion(){
     if(!checkLength(8, magicAndVersion))
       return;
@@ -215,6 +217,7 @@ module.exports = function(path, opt,callback){
 
   function pipeToUnzip(){
     createIconDir();
+    let currentPos = rawReader.currentPos;
     combineStream.append(rawReader.readBuffer(rawReader.length - rawReader.pos))
     .on('end',()=>debug('combine end.'))
     .pipe(unzip.Parse())
@@ -240,29 +243,40 @@ module.exports = function(path, opt,callback){
           decThread('extract locale file');
         }))
       }
-      else if(iconDir && crx.manifest &&
-          crx.manifest.icons &&
-          ~Object.values(crx.manifest.icons).indexOf(entry.path)){
-        for (let prop in crx.manifest.icons){
-          if (crx.manifest.icons[prop]==entry.path){
-            let imgFileName = iconDir +
-              '/' + entry.path.match(/[^\/]+\.\w+$/)
-            let fd=fs.openSync(imgFileName,'w');
-            debug('extract:', imgFileName);
-            crx.icons[prop]=imgFileName;
-            addThread('extract icon')
-            entry.pipe(fs.createWriteStream(imgFileName,{fd:fd, autoClose:true}))
-              .on('close',()=>decThread('extract icon'));
-            break;
-          }
-        }
-      }
       else
         entry.autodrain();
     })
     .on('close',()=>{
-      debug('unzip on close')
-      decThread('main thread end');
+      debug('unzip on close');
+      if(iconDir && crx.manifest &&
+        crx.manifest.icons){
+          let crxStream=fs.createReadStream(path, {start:currentPos});
+          let iconsArray = Object.values(crx.manifest.icons);
+          crxStream.pipe(unzip.Parse())
+            .on('entry', entry=>{
+              if (iconsArray.includes(entry.path)){
+                for (let prop in crx.manifest.icons){
+                  if (crx.manifest.icons[prop]==entry.path){
+                    let imgFileName = `${iconDir}/${getFileName(entry.path)}`
+                    let fd=fs.openSync(imgFileName,'w');
+                    debug('extract:', imgFileName);
+                    crx.icons[prop]=imgFileName;
+                    addThread('extract icon')
+                    entry.pipe(fs.createWriteStream(imgFileName,{fd:fd, autoClose:true}))
+                      .on('close',()=>decThread('extract icon'));
+                    break;
+                  }
+                }
+              }else{
+                entry.autodrain();
+              }
+            })
+            .on('close',()=>{
+              decThread('main thread end');
+            })
+      }else{
+        decThread('main thread end');
+      }
     });
     pipeToNext=true;
   }
