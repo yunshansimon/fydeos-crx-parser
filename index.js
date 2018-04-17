@@ -274,9 +274,14 @@ module.exports = function(path, opt,callback){
             .on('close',()=>{
               decThread('main thread end');
             })
+            .on('error', error =>debug(error))
       }else{
         decThread('main thread end');
       }
+    })
+    .on('error', error=>{
+      err = error
+      debug(error)
     });
     pipeToNext=true;
   }

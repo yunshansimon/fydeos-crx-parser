@@ -82,6 +82,24 @@ describe('crxParser test', function(){
       done();
     })
   })
+
+  it("test system controller", function(done){
+    crxParser(__dirname + '/fydeos_system_controller.crx',{
+      locales:['zh-CN', 'en'],
+      iconPath: tmpPath + '/$APPID'
+    },(err, crxInfo)=>{
+      should.not.exist(err);
+      should.exist(crxInfo);
+      crxInfo.should.has.property('manifest')
+      crxInfo.manifest.should.has.property('name');
+      crxInfo.manifest.name.value.should.eql('FydeOS系统控制');
+      crxInfo.should.has.property('icons');
+      for(icon in crxInfo.icons){
+        fs.statSync(crxInfo.icons[icon]).isFile().should.be.true;
+      }
+      done();
+    })
+  })
 })
 
 
